@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>grupopqc.utfprtd</groupId>
+    <artifactId>hybridexample</artifactId>
+    <version>0.0.1</version>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bc-fips</artifactId>
+            <version>1.0.2.4</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <exec.mainClass>grupopqc.utfprtd.hybridexample.Hybridexample</exec.mainClass>
+    </properties>
+    <dependencyManagement>
+        <dependencies>            
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.77</version>
+                <type>jar</type>
+            </dependency>            
+        </dependencies>
+    </dependencyManagement>        
+</project>
