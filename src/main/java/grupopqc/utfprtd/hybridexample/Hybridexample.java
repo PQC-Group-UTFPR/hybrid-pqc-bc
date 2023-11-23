@@ -1,77 +1,29 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
-
-
 package grupopqc.utfprtd.hybridexample;
 
-
-
-import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
-import org.bouncycastle.jcajce.spec.KEMExtractSpec;
-import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
-import org.bouncycastle.util.Arrays;
-
-
-
-
-
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
+import java.util.HashMap;
+import java.util.Map;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.security.interfaces.ECPublicKey;
-//import java.security.spec.ECParameterSpec;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.crypto.KeyAgreement;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import org.bouncycastle.crypto.Key;
-import org.bouncycastle.crypto.asymmetric.AsymmetricECKey;
-import org.bouncycastle.crypto.asymmetric.AsymmetricECPrivateKey;
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
-import org.bouncycastle.jcajce.spec.HybridValueParameterSpec;
-import org.bouncycastle.jcajce.spec.UserKeyingMaterialSpec;
-import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.crypto.crystals.kyber.KyberKEMGenerator;
-
-/*
-* Based on here: https://stackoverflow.com/questions/75240825/implementing-crystals-kyber-using-bouncycastle-java
-*/
-
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+import org.bouncycastle.util.Arrays;
 
 /**
- *
- * @author alexandregiron
  * It follows (as possible) SP80056C style from https://www.youtube.com/watch?v=EABttUCoTdY
+ * 1. KeyGen operations (Alice and Bob)
+ * 1.1 Public Key Distribution: Parties add Other Party's Public Keys into its own set of keys
+ * 2. Encapsulation
+ * 3. Decapsulation
  */
 public class Hybridexample {
 
     static PublicKey PublicKeyReceiver;
-    static byte[] ukm = new SecureRandom().generateSeed(32);
+    static byte[] ukm = new byte[32]; 
     
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        System.out.println("(Hybrid) PQC Key-Establishment Example with Bouncy Castle");
         
         if (Security.getProvider("BCPQC") == null) {
             Security.addProvider(new BouncyCastlePQCProvider());
@@ -79,204 +31,80 @@ public class Hybridexample {
         if (Security.getProvider("BC") == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
+        SecureRandom srandom = new SecureRandom();
+        srandom.nextBytes(ukm);
         
-        run(false);
+        //run(false);
+        KeyEstablishmentStrategy strategy;
+        if (args.length == 0){ 
+            strategy = new HybridKEM();
+            System.out.println("\tPQC KEM in Hybrid mode selected (default)");
+        }else{
+            strategy = new KEM();
+            System.out.println("\tPQC-Only KEM selected");            
+        }
+        runKeyEstablishment(strategy);
     }
 
-    private static void run(boolean b) {
-        System.out.println("PQC Hybrid Example: Use this for testing purposes only...");
-        /*KyberParameterSpec[] kyberParameterSpecs = {
-                KyberParameterSpec.kyber512,
-                KyberParameterSpec.kyber768,
-                KyberParameterSpec.kyber1024
-        };*/
+    private static void runKeyEstablishment(KeyEstablishmentStrategy s){
         
+        //Select algorithms
+        String algoName = "KYBER";
+        String providerName = "BCPQC";
+        String encName = "AES[256]";
         
-        ////////////////////////////////////////////////////////////////////////
-        // key-pair generation
-        KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber768;
-        String kyberParameterSpecName = kyberParameterSpec.getName();        
-        System.out.println("Kyber KEM:" + kyberParameterSpecName);
-        Map keys = generateHKyberKeyPair(kyberParameterSpec, true);
-
-        if (keys.get("PQC") == null || keys.get("Classical") == null) {
-            System.out.println("Failed Key generation");
+        //Alice is the initiator; Bob replies
+        //1.Generate Keys
+        Map<String, KeyPair> AliceKeys = s.keyGeneration(algoName, providerName);
+        Map<String, KeyPair> BobKeys = s.keyGeneration(algoName, providerName);
+        if (AliceKeys.isEmpty() || BobKeys.isEmpty()) {
+            System.out.println("\tFailed Key generation");
             System.exit(1);
         }
-        KeyPair pqcKeys = (KeyPair) keys.get("PQC");
-        KeyPair classicalKeys = (KeyPair) keys.get("Classical");
         
-        Map<String, PublicKey>  publickeys = new HashMap<>();
-        publickeys.put("PQC", pqcKeys.getPublic());
-        publickeys.put("Classical", classicalKeys.getPublic());
+        //Key Distribution:
+        Map<String, KeyPair> AlicePulicKeys = new HashMap<>();
+        Map<String, KeyPair> BobPulicKeys = new HashMap<>();
         
-        //PublicKey publicKey = pqcKeys.getPublic();
-        Map r = HEncapsulation(publickeys,true);
-        byte[] C = (byte[]) r.get("C");
-        byte[] K = (byte[]) r.get("K");
+        //Alice sends its public key(s) to Bob. So here we add public keys in the mappings        
+        for (String key : AliceKeys.keySet()) {
+            KeyPair k = new KeyPair(AliceKeys.get(key).getPublic(), null);
+            AlicePulicKeys.put("OtherParty-"+key, k);            
+        }
+        //Alice receives Bobs Public Keys
+        for (String key : BobKeys.keySet()) {
+            KeyPair k = new KeyPair(BobKeys.get(key).getPublic(), null);
+            BobPulicKeys.put("OtherParty-"+key, k);            
+        }
+        AliceKeys.putAll(BobPulicKeys);
+        BobKeys.putAll(AlicePulicKeys);
+        //At the end, parties have their own keypairs + public keys of each other
+                
+                
+        //2. Bob Perform Encaps to AlicePublicKeys
+        Map rEncaps = s.encapsulation(algoName, providerName, encName, BobKeys);
+        if (rEncaps.isEmpty()) {
+            System.out.println("\tFailed Encaps");
+            System.exit(2);
+        }
+        byte[] C = (byte[]) rEncaps.get("C");
+        byte[] K = (byte[]) rEncaps.get("K");
         
-        PrivateKey privKey = pqcKeys.getPrivate();
-        byte[] decryptedK = HDecapsulation(privKey, C,  classicalKeys.getPrivate(), true);
-
-        //Check if decryption is equal
-        System.out.println("Printing K(size:"+K.length+")"); //to be derived 
-        System.out.println(bytesToHex(K));
-        System.out.println("Decaps Result:");
-        System.out.println(bytesToHex(decryptedK));
-        
+        //3. Alice Perform Decaps
+        byte[] decryptedK = (byte[]) s.decapsulation(algoName, providerName, encName, C, AliceKeys);
         boolean keysAreEqual = Arrays.areEqual(K, decryptedK);
         if (keysAreEqual){
-            System.out.println("Decapsulation success!");
+            System.out.println("\tKey-Establishment success!");
         }else {
-            System.out.println("Failed Decaps");
+            System.out.println("\tFailed Decaps");
             System.exit(2);
-        }                                     
-    }
-
-            
-    /*
-    * Key pair generation
-    * TODO: hybrid mode
-    */    
-    private static Map<String, KeyPair> generateHKyberKeyPair(KyberParameterSpec kyberParameterSpec, boolean isHybrid) {
-        Map<String, KeyPair> r = new HashMap<>();
-        try {
-            KeyPairGenerator kpg = KeyPairGenerator.getInstance("KYBER", "BCPQC");
-            kpg.initialize(kyberParameterSpec, new SecureRandom());
-            KeyPair kp = kpg.generateKeyPair();
-            
-            r.put("PQC", kp);
-            
-            if (isHybrid){
-                //generate a classic key
-                ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("P-384"); 
-                KeyPairGenerator g = KeyPairGenerator.getInstance("ECDH", "BC");
-                g.initialize(ecSpec, new SecureRandom());
-                KeyPair aKeyPair = g.generateKeyPair();
-                r.put("Classical", aKeyPair);
-            }
-            
-            return r;
-            
-            
-            //alternate mode from tutorial
-            //KyberKEMGenerator kyber = new KyberKEMGenerator(new SecureRandom());
-            //return kyber;   
-            
-            
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-            e.printStackTrace();
-            return null;
         }
-    }
-
-    /*
-    * Encaps
-    * TODO: hybrid mode
-    */
-    
-                     //K, C
-    private static Map<String, byte[]> HEncapsulation(Map<String, PublicKey> keys, boolean isHybrid)  {
-        KeyGenerator keyGen = null;
-        Map<String, byte[]> r = new HashMap<>();
-        try {            
-            keyGen = KeyGenerator.getInstance("KYBER", "BCPQC");
-            //KEMGenerate Spec
-            PublicKey publicKey = keys.get("PQC");
-            keyGen.init(new KEMGenerateSpec((PublicKey) publicKey, "AES"), new SecureRandom());
-            SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation) keyGen.generateKey();
-            
-            //
-            //SecretWithEncapsulation secEnc1 = (SecretWithEncapsulation) keyGen.generateKey();
-            
-            //PQC encaps
-            byte[] encapsulatedKey = secEnc1.getEncapsulation();
-            //get K from PQC KEM
-            byte[] K = secEnc1.getEncoded();
-            
-            //Logs (optional)
-            /*System.out.println("Printing Ciphertext(size:"+encapsulatedKey.length+")"); //to be derived 
-            System.out.println(bytesToHex(encapsulatedKey));                        
-            System.out.println("Printing K(size:"+K.length+")"); //to be derived 
-            System.out.println(bytesToHex(K));*/
-                                                                        
-            //if is Hybrid...
-            if (isHybrid){               
-               KeyAgreement agreement = KeyAgreement.getInstance("ECCDHwithSHA384CKDF", "BC");
-               
-                                
-                //generate a classic key
-                ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("P-384"); 
-                KeyPairGenerator g = KeyPairGenerator.getInstance("ECDH", "BC");
-                g.initialize(ecSpec, new SecureRandom());
-                KeyPair aKeyPair = g.generateKeyPair();
-
-                //hack: set public key receiver
-                PublicKeyReceiver = aKeyPair.getPublic();
-                
-                
-                //Z' = Z || K  
-                publicKey = keys.get("Classical");
-                agreement.init(aKeyPair.getPrivate(), new HybridValueParameterSpec(K, new UserKeyingMaterialSpec(ukm)));
-                agreement.doPhase(publicKey, true);
-                
-                SecretKey agreedKey = agreement.generateSecret("AES[256]");
-                r.put("K", agreedKey.getEncoded());
-                                
-            //----------------
-            }else{
-                r.put("K", K);
-                                               
-            }
-            r.put("C", encapsulatedKey); 
-            
-            return r;                        
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    }    
 
     private static String bytesToHex(byte[] bytes) {
         StringBuffer result = new StringBuffer();
         for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
         return result.toString();
     }
-
-    private static byte[] HDecapsulation(PrivateKey pqcprivKey, byte[] C,PrivateKey classicalprivKey, boolean isHybrid) {
-        KeyGenerator keyGen = null;
-        try {
-            keyGen = KeyGenerator.getInstance("KYBER", "BCPQC");
-            //KEMExtract spec
-            keyGen.init(new KEMExtractSpec((PrivateKey) pqcprivKey, C, "AES"), new SecureRandom());
-            SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation) keyGen.generateKey();
-            
-            //logs (optional): show decrypted K
-            byte[] K = secEnc2.getEncoded();
-            /*System.out.println("Decaps Result:");
-            System.out.println(bytesToHex(K));*/
-            
-                                                                                    
-            //if is Hybrid...
-            if (isHybrid){
-                KeyAgreement agreement = KeyAgreement.getInstance("ECCDHwithSHA384CKDF", "BC");
-                //Generate a 'user' key material
-                
-                
-                //Z' = K1 || K2  
-                agreement.init(classicalprivKey, new HybridValueParameterSpec(K, new UserKeyingMaterialSpec(ukm)));
-                agreement.doPhase(PublicKeyReceiver, true);
-                
-                SecretKey agreedKey = agreement.generateSecret("AES[256]");                
-                return agreedKey.getEncoded();
-            //----------------
-            }
-            
-            
-            return secEnc2.getEncoded(); //return K
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeyException e) {
-            e.printStackTrace();
-            return null;
-        } 
-    }
+       
 }
