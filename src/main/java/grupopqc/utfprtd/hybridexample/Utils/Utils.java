@@ -1,8 +1,11 @@
 package grupopqc.utfprtd.hybridexample.Utils;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.security.KeyPair;
 import java.util.HashMap;
 import java.util.Map;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 
 public class Utils {
 
@@ -19,6 +22,26 @@ public class Utils {
             keyPairMap.put("OtherParty-"+key, keyPublic);
         }
         return keyPairMap;
+    }
+    
+    public static String toPEM(java.security.cert.X509Certificate cert) throws IOException {
+        StringWriter stringWriter = null;
+        JcaPEMWriter pemWriter = null;
+        String result = null;
+        try {
+            stringWriter = new StringWriter();
+            pemWriter = new JcaPEMWriter(stringWriter);
+            pemWriter.writeObject(cert);
+            pemWriter.flush();
+            stringWriter.flush();
+            result = stringWriter.toString();
+        } finally {
+            if (pemWriter != null)
+                pemWriter.close();
+            if (stringWriter != null)
+                stringWriter.close();
+        }
+        return result;
     }
 
 }
