@@ -5,7 +5,10 @@
 package x509;
 
 import grupopqc.utfprtd.hybridexample.RSA;
+import java.io.StringWriter;
 import java.security.KeyPair;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 
 /**
  *
@@ -16,15 +19,17 @@ import java.security.KeyPair;
  */
 public class CompositeExample {
     
-    public static void main() throws Exception{
+    public static void main(String[] args) throws Exception{
+        
+        KeyPair classicKeyPair = RSA.generateKeyPair();        
         //Create a composite private key
-        KeyPair classicKeyPair = RSA.generateKeyPair();
         
+        //create a composite public key        
+        CompositePublicKey compositePk = new CompositePublicKey();
+        compositePk.AddComponent(classicKeyPair);
         
-        
-        //create a composite public key
-        
-        
+        //test: save composite PK
+        compositePk.CompositeToPEM();
         
         //create a composite signature
         

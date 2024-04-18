@@ -4,6 +4,8 @@
  */
 package x509;
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+
 /**
  *
  * @author alexandregiron
