@@ -34,10 +34,8 @@ public class HybridSignatureExample {
         //run(false);
         SignerStrategy strategy;
         if (args.length == 0){
-            //strategy = new HybridSigner();
-            strategy = new PQSigner();
-            System.out.println("\tPQC-Only Signer selected");
-            //System.out.println("\tPQC Signer in Hybrid mode selected (default)");
+            strategy = new HybridPQSigner();                        
+            System.out.println("\tPQC Signer in Hybrid mode selected (default)");
         }else{
             strategy = new PQSigner();
             System.out.println("\tPQC-Only Signer selected");
@@ -71,7 +69,7 @@ public class HybridSignatureExample {
 
             String message = "Hello world of PQC signers";
             //INIT
-            MessageSigner ms = strategy.init(true, true, skParam);
+            MessageSigner ms = strategy.init(true, skParam);
 
 
             //sign

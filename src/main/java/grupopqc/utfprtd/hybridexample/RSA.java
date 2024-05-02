@@ -30,12 +30,14 @@ public class RSA {
         return pair;
     }
 
-    public static String sign(String message) throws Exception {
+    public static byte[] sign(byte[] message) throws Exception {
         Signature privateSign = Signature.getInstance("SHA256WithRSA");
         privateSign.initSign(privateKey);
-        privateSign.update(message.getBytes(UTF_8));
+        //privateSign.update(message.getBytes(UTF_8));
+        privateSign.update(message);
         byte[] signature = privateSign.sign();
-        return Base64.getEncoder().encodeToString(signature);
+        return signature;
+        //return Base64.getEncoder().encodeToString(signature);
     }
 
     public boolean verify(String signedMessage, String plainText) throws Exception {
