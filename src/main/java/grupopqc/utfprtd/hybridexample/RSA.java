@@ -2,13 +2,13 @@ package grupopqc.utfprtd.hybridexample;
 
 import static java.nio.charset.StandardCharsets.*;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.Signature;
+import java.security.*;
+import java.util.ArrayList;
 import java.util.Base64;
+
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pqc.crypto.MessageSigner;
+import org.bouncycastle.pqc.crypto.rainbow.RainbowSigner;
 
 
 public class RSA {
@@ -17,29 +17,41 @@ public class RSA {
     private static PublicKey publicKey;
     private static int KeySize = 2048;
 
-    public static boolean bytesToBoolean(byte[] buffer) {
-        return bytesToBoolean(buffer);
-    }
-
-    public static KeyPair generateKeyPair() throws Exception {
+    /*public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(KeySize, new SecureRandom());
         KeyPair pair = generator.generateKeyPair();
         setPrivateKey(pair.getPrivate());
         setPublicKey(pair.getPublic());
         return pair;
+    }*/
+
+    public static MessageSigner generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException{
+
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+
+        generator.initialize(KeySize);
+
+        KeyPair pair = generator.generateKeyPair();
+
+        setPrivateKey(pair.getPrivate());
+        setPublicKey(pair.getPublic());
+
+        Security.addProvider(new BouncyCastleProvider());
+
+        return new RainbowSigner();
     }
 
-    public static byte[] sign(byte[] message) throws Exception {
+    //@Override
+    public String sign(String message) throws Exception {
         Signature privateSign = Signature.getInstance("SHA256WithRSA");
         privateSign.initSign(privateKey);
-        //privateSign.update(message.getBytes(UTF_8));
-        privateSign.update(message);
+        privateSign.update(message.getBytes(UTF_8));
         byte[] signature = privateSign.sign();
-        return signature;
-        //return Base64.getEncoder().encodeToString(signature);
+        return Base64.getEncoder().encodeToString(signature);
     }
 
+   // @Override
     public boolean verify(String signedMessage, String plainText) throws Exception {
         Signature publicSign = Signature.getInstance("SHA256withRSA");
         publicSign.initVerify(publicKey);

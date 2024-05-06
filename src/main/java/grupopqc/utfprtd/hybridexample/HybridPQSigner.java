@@ -1,7 +1,6 @@
 package grupopqc.utfprtd.hybridexample;
 
 import grupopqc.utfprtd.hybridexample.RSA;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.pqc.crypto.MessageSigner;
 import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumSigner;
@@ -11,41 +10,31 @@ import java.util.ArrayList;
 
 public class HybridPQSigner implements SignerStrategy {
 
-    private KeyPair classicKeyPair;
-    
     @Override
-    public MessageSigner init(boolean keyUsageForSigning1, CipherParameters parameters) {//testar hashmap
-        classicKeyPair = RSA.generateKeyPair();
-        RSA.setPrivateKey(classicKeyPair.getPrivate());
-        RSA.setPublicKey(classicKeyPair.getPublic());
-        MessageSigner ms1 = new DilithiumSigner();        
-        ms1.init(keyUsageForSigning1,parameters);        
-        return ms1;
-    }
-    
-    
+    public ArrayList<MessageSigner> init(boolean keyUsageForSigning1, boolean keyUsageForSigning2, ArrayList<CipherParameters> parameters){//testar hashmap
 
-    /*
-    * TODO: check https://www.overleaf.com/read/vnczxhctwxkv#2e8e14 slide 13    
-    */
+        MessageSigner ms1 = new DilithiumSigner();
+        MessageSigner ms2 = RSA.generateKeyPair();
+
+        ms1.init(keyUsageForSigning1, parameters.get(0));
+        ms2.init(keyUsageForSigning2, parameters.get(1));
+
+        ArrayList<MessageSigner> signedMessages = new ArrayList<>();
+        signedMessages.add(ms1);
+        signedMessages.add(ms2);
+
+        return signedMessages;
+
+    }
+
     @Override
     public byte[] sign(MessageSigner ms, byte[] message) {
         byte[] s = ms.generateSignature(message);
-        byte[] s2 = RSA.sign(message);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        outputStream.write(s);
-        outputStream.write(s2);
-
-        byte ret[] = outputStream.toByteArray();
-        return ret;
+        return s;
     }
 
     @Override
     public boolean verify(MessageSigner ms, byte[] message, byte[] signature) {
-        
-        Arrays.copyOfRange(input, blockStart, i);
-        
-        
         return ms.verifySignature(message, signature);
     }
 }

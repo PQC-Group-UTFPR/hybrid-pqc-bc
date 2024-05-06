@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public interface SignerStrategy {
 
-    public MessageSigner init(boolean keyUsageForSigning, CipherParameters parameters);
+    public ArrayList<MessageSigner> init(boolean keyUsageForSigning1, boolean keyUsageForSigning2, ArrayList<CipherParameters> parameters);
 
     byte[] sign(MessageSigner ms, byte[] message);
 
