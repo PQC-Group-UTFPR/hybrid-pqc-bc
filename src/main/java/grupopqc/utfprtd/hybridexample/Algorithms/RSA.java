@@ -1,14 +1,10 @@
-package grupopqc.utfprtd.hybridexample;
+package grupopqc.utfprtd.hybridexample.Algorithms;
 
 import static java.nio.charset.StandardCharsets.*;
 
 import java.security.*;
-import java.util.ArrayList;
 import java.util.Base64;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.crypto.MessageSigner;
-import org.bouncycastle.pqc.crypto.rainbow.RainbowSigner;
 
 
 public class RSA {
@@ -17,19 +13,17 @@ public class RSA {
     private static PublicKey publicKey;
     private static int KeySize = 2048;
 
-    /*public static KeyPair generateKeyPair() throws Exception {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(KeySize, new SecureRandom());
-        KeyPair pair = generator.generateKeyPair();
-        setPrivateKey(pair.getPrivate());
-        setPublicKey(pair.getPublic());
-        return pair;
-    }*/
-
-    public static MessageSigner generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException{
+    //Maybe we can ommit and return void
+    public static KeyPair generateKeyPair(int keysize) throws NoSuchAlgorithmException {
 
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-
+        
+        if (keysize < 2048){
+            System.out.println("Error: invalid RSA keysize");
+            return null;
+        }
+        
+        KeySize = keysize;        
         generator.initialize(KeySize);
 
         KeyPair pair = generator.generateKeyPair();
@@ -37,9 +31,7 @@ public class RSA {
         setPrivateKey(pair.getPrivate());
         setPublicKey(pair.getPublic());
 
-        Security.addProvider(new BouncyCastleProvider());
-
-        return new RainbowSigner();
+        return pair;
     }
 
     //@Override

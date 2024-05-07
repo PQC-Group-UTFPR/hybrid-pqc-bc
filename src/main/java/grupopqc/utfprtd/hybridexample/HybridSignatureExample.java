@@ -1,16 +1,14 @@
 package grupopqc.utfprtd.hybridexample;
 
-import static grupopqc.utfprtd.hybridexample.HybridExample.ukm;
+import grupopqc.utfprtd.hybridexample.Algorithms.PQSigner;
+import grupopqc.utfprtd.hybridexample.Algorithms.HybridSigner;
+import grupopqc.utfprtd.hybridexample.Algorithms.SignerStrategy;
 import java.io.UnsupportedEncodingException;
-import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.crypto.MessageSigner;
-import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPrivateKeyParameters;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 
 
@@ -28,19 +26,14 @@ public class HybridSignatureExample {
         if (Security.getProvider("BC") == null) {
             Security.addProvider(new BouncyCastleProvider());
         }
-        SecureRandom srandom = new SecureRandom();
-        srandom.nextBytes(ukm);
-
-        //run(false);
+        
         SignerStrategy strategy;
         if (args.length == 0){
-            //strategy = new HybridSigner();
-            strategy = new PQSigner();
-            System.out.println("\tPQC-Only Signer selected");
-            //System.out.println("\tPQC Signer in Hybrid mode selected (default)");
+            strategy = new HybridSigner();            
+            System.out.println("\t\tPQC Signer in Hybrid mode selected (default)\n");
         }else{
             strategy = new PQSigner();
-            System.out.println("\tPQC-Only Signer selected");
+            System.out.println("\t\tPQC-Only Signer selected\n");
         }
         runSigner(strategy);
 
@@ -48,54 +41,28 @@ public class HybridSignatureExample {
 
 
     private static void runSigner(SignerStrategy strategy)  {
-
-        DilithiumKeyGenerator keyPair = new DilithiumKeyGenerator();
-
-        // CipherParameters dspec = (CipherParameters) DilithiumParameterSpec.dilithium2;
-        CipherParameters dspec;
-        //DilithiumParameters dparams = ;
-        /*
-        DilithiumParameters dilithiumParams = (DilithiumParameters)DilithiumParameters.dilithium2;
-        dspec = new DilithiumKeyParameters(false,dilithiumParams);
-*/
-        /*try {
-            DilithiumPublicKeyParameters pubParams = (DilithiumPublicKeyParameters)PublicKeyFactory.createKey(
-                    SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo((DilithiumPublicKeyParameters)keyPair.getPublic()));
-        */
-
+       
         try{
-            DilithiumKeyGenerator pkParam = new DilithiumKeyGenerator();
-
-            DilithiumPrivateKeyParameters skParam = (DilithiumPrivateKeyParameters)keyPair.getPrivate();
-
 
             String message = "Hello world of PQC signers";
             //INIT
-            MessageSigner ms = strategy.init(true, true, skParam);
+            strategy.init("Dilithium2");
 
-
-            //sign
-            byte[] s = strategy.sign(ms, message.getBytes("UTF-8"));
-
+            //SIGN
+            byte[] s = strategy.sign(message.getBytes("UTF-8"));
             System.out.println("Signature produced:" + Base64.getEncoder().encodeToString(s));
 
             //test integrity
             //s[0] = '\0';
 
-            //MessageSigner ms2 = strategy.init(false, pubParams);
-            MessageSigner ms2 = strategy.init(false, true, pkParam);
-
-
-            if (strategy.verify(ms2, message.getBytes("UTF-8"), s)){
+            if (strategy.verify(message.getBytes("UTF-8"), s)){
                 System.out.println("Valid Signature");
             } else{
                 System.out.println("InvalidSignature");
             }
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
-        }/* catch (IOException ex) {
-            Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+        }
 
 
     }
