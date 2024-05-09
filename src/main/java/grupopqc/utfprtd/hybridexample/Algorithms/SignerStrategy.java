@@ -3,7 +3,7 @@ package grupopqc.utfprtd.hybridexample.Algorithms;
 
 /**
  *
- * @author alexandregiron
+ * 
  */
 public interface SignerStrategy {
 
