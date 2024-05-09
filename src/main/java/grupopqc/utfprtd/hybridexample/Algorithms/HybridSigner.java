@@ -19,8 +19,8 @@ import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumSigner;
  *
  * This hybrid signer follows PQSigner and adds by default: 
  * RSA3072 with Dilithium2 
- * RSA7680 with Dilithium3 //TODO 
- * RSA15360 with Dilithium5 //TODO
+ * RSA7680 with Dilithium3
+ * RSA15360 with Dilithium5
  * P256-ECDSA with Dilithium2 //TODO 
  * P384-ECDSA with Dilithium3 //TODO
  * P521-ECDSA with Dilithium5 //TODO
@@ -49,8 +49,12 @@ public class HybridSigner implements SignerStrategy {
                     break;
 
                 case "Dilithium3":
+                    keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));
+                    hIngredient = RSA.generateKeyPair(7680);
                     break;
                 case "Dilithium5":
+                    keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium5));
+                    hIngredient = RSA.generateKeyPair(15360);
                     break;
                 default:
                     keyGen.init(new DilithiumKeyGenerationParameters(random, DilithiumParameters.dilithium3));

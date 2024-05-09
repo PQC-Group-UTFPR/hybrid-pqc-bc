@@ -22,7 +22,6 @@ public class PQSigner implements SignerStrategy {
     
     @Override
     public void init(String pqAlgorithm) {
-        //dilithium2, fazer um mapeamento para mais opções (dilithium3...)
         
         random = new SecureRandom();
         
@@ -31,9 +30,11 @@ public class PQSigner implements SignerStrategy {
             case "Dilithium2":
                 keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium2));
                 break;
-            case "Dilithium3": //TODO
+            case "Dilithium3":
+                keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));
                 break;
-            case "Dilithium5": //TODO
+            case "Dilithium5":
+                keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium5));
                 break;
             default:
                 keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));

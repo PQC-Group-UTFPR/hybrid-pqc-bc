@@ -12,10 +12,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 
 
-/**
- *
- * @author alexandregiron
- */
 public class HybridSignatureExample {
     public static void main(String[] args) {
         System.out.println("(Hybrid) PQC Key-Establishment Example with Bouncy Castle");
