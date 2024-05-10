@@ -4,7 +4,6 @@ import grupopqc.utfprtd.hybridexample.Algorithms.RSA;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.util.ASN1Dump;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
@@ -15,6 +14,7 @@ import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPrivateKeyParamet
 import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPublicKeyParameters;
 import org.bouncycastle.pqc.jcajce.provider.dilithium.BCDilithiumPrivateKey;
 import org.bouncycastle.pqc.jcajce.provider.dilithium.BCDilithiumPublicKey;
+import org.bouncycastle.util.encoders.Base64;
 
 /**
  *
@@ -27,9 +27,9 @@ public class CompositeExample {
         SecureRandom random = new SecureRandom();
 
         //GENERATE KEYS: ckeypair and pqAsymmetricKeyPair
-        KeyPair ckeyPair = RSA.generateKeyPair(3072);
+        KeyPair ckeyPair = RSA.generateKeyPair(2048);
         DilithiumKeyPairGenerator keyGen = new DilithiumKeyPairGenerator();
-        keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium2));
+        keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));
         AsymmetricCipherKeyPair pqAsymmetricKeyPair = keyGen.generateKeyPair();
         
         //convert asymmetric key pair to key pair
@@ -38,19 +38,21 @@ public class CompositeExample {
         KeyPair pqKeyPair = new KeyPair(new BCDilithiumPublicKey(pkParam), new BCDilithiumPrivateKey(skParam));
         
         
-        //Create a composite private key        
-        CompositePrivateKey compositePrivKey = new CompositePrivateKey(ckeyPair.getPrivate(), pqKeyPair.getPrivate());
+        //Create a composite private key: PQ first!        
+        CompositePrivateKey compositePrivKey = new CompositePrivateKey( pqKeyPair.getPrivate(), ckeyPair.getPrivate());
                         
-        //create a composite public key RSA3072-Dilithium2
-        CompositePublicKey compositePubKey = new CompositePublicKey(ckeyPair.getPublic(), pqKeyPair.getPublic());
+        //create a composite public key Dilithium3-RSA2048 (well, just following the link below... check HybridSigner.java for different hybrid mappings)
+        CompositePublicKey compositePubKey = new CompositePublicKey(pqKeyPair.getPublic(), ckeyPair.getPublic());
         
-        //test: save composite PK
-        System.out.println("PK:" + compositePubKey.getAlgorithm());
-        System.out.println("PK format:" + compositePubKey.getFormat());
-        //System.out.println(new String(compositePubKey.getEncoded()));
-        System.out.println(ASN1Dump.dumpAsString(ASN1Primitive.fromByteArray(compositePubKey.getEncoded())));
-        
-        //TODO create a composite signature
+        //test: print composite PK, you can match this with https://github.com/EntrustCorporation/draft-ounsworth-pq-composite-keys/blob/master/sampledata/current/id-Dilithium3-RSA_pub.pem and https://lapo.it/asn1js/        
+        byte[] encodedBytes = Base64.encode(ASN1Primitive.fromByteArray(compositePubKey.getEncoded()).getEncoded());
+        System.out.println("Pk-composite encoded:" + new String(encodedBytes));
+
+        encodedBytes = Base64.encode(ASN1Primitive.fromByteArray(compositePrivKey.getEncoded()).getEncoded());
+        System.out.println("\nComp. Private Key encoded:" + new String(encodedBytes));
+
+
+        //TODO create a composite signature        
         
         //TODO: Create a x509 composite certificate example.
     }
