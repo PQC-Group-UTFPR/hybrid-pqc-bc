@@ -7,13 +7,14 @@ import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 
 import java.io.UnsupportedEncodingException;
 import java.security.Security;
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PQSignerTestTime {
 
-    public static int keyNumbers = 100000;
+    public static int keyNumbers = 10000;
     public static String message = "Hello world of PQC signers";
 
     public static void main(String[] args) {
@@ -26,7 +27,7 @@ public class PQSignerTestTime {
             Security.addProvider(new BouncyCastleProvider());
         }
 
-        SignerStrategy strategy;
+        SignerStrategy strategy = new PQSigner();
 
         System.out.println("Starting key generator tests on PQC only with Dilithium");
 
@@ -35,13 +36,12 @@ public class PQSignerTestTime {
 
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
             runKeyGen(strategy, "Dilithium2");
         }
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
         long minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
-        System.out.println("Elapsed time: " + minutesElapsed + " seconds");
+        System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium2");
 
         System.out.println("--------Initiating test--------");
@@ -49,13 +49,12 @@ public class PQSignerTestTime {
 
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
             runKeyGen(strategy, "Dilithium3");
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
-        System.out.println("Elapsed time: " + minutesElapsed + " seconds");
+        System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium3");
 
         System.out.println("--------Initiating test--------");
@@ -63,15 +62,13 @@ public class PQSignerTestTime {
 
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
             runKeyGen(strategy, "Dilithium5");
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
-        System.out.println("Elapsed time: " + minutesElapsed + " seconds");
+        System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium5");
-        System.out.println("End of key generator tests.");
 
         System.out.println();
         System.out.println("Starting signing tests");
@@ -80,8 +77,7 @@ public class PQSignerTestTime {
         System.out.println("Stating tests with Dilithium2");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
-            runSigner(strategy, message, "Dilithium2");
+            runSigner(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -93,8 +89,7 @@ public class PQSignerTestTime {
         System.out.println("Stating tests with Dilithium3");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
-            runSigner(strategy, message, "Dilithium3");
+            runSigner(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -106,8 +101,7 @@ public class PQSignerTestTime {
         System.out.println("Stating tests with Dilithium5");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
-            runSigner(strategy, message, "Dilithium5");
+            runSigner(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -124,8 +118,7 @@ public class PQSignerTestTime {
         System.out.println("Stating tests with Dilithium2");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
-            runVerify(strategy, message, "Dilithium2");
+            runVerify(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -137,8 +130,7 @@ public class PQSignerTestTime {
         System.out.println("Stating tests with Dilithium3");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
-            runVerify(strategy, message, "Dilithium3");
+            runVerify(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -150,8 +142,7 @@ public class PQSignerTestTime {
         System.out.println("Stating tests with Dilithium5");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            strategy = new PQSigner();
-            runVerify(strategy, message, "Dilithium5");
+            runVerify(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -165,25 +156,20 @@ public class PQSignerTestTime {
             strategy.init(DilithiumLevel);
     }
 
-    private static void runSigner(SignerStrategy strategy, String message, String DilithiumLevel){
-
-        strategy.init(DilithiumLevel);
-
+    private static void runSigner(SignerStrategy strategy, String message){
         try{
-            byte[] s = message.getBytes("UTF-8");
+            byte[] s = strategy.sign(message.getBytes("UTF-8"));
+            Base64.getEncoder().encodeToString(s);
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private static void runVerify(SignerStrategy strategy, String message, String DilithiumLevel){
+    private static void runVerify(SignerStrategy strategy, String message){
 
         try {
-            strategy.init(DilithiumLevel);
-
-            byte[] signed = message.getBytes("UTF-8");
-
-            strategy.verify(message.getBytes("UTF-8"), signed);
+            byte[] signature = strategy.sign(message.getBytes("UTF-8"));
+            strategy.verify(message.getBytes("UTF-8"), signature);
 
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
