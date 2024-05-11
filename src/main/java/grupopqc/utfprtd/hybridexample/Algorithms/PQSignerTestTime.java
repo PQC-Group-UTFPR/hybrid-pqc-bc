@@ -169,7 +169,7 @@ public class PQSignerTestTime {
 
         try {
             byte[] signature = strategy.sign(message.getBytes("UTF-8"));
-            strategy.verify(message.getBytes("UTF-8"), signature);
+            strategy.verify(message.getBytes("UTF-8"), signature, dilithiumLevel);
 
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);

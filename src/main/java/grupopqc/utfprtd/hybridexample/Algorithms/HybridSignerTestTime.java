@@ -171,7 +171,7 @@ public class HybridSignerTestTime {
     private static void runVerify(SignerStrategy strategy, String message, String dilithiumLevel) {
             try{
                 byte[] signature = strategy.sign(message.getBytes("UTF-8"));
-                strategy.verify((message.getBytes("UTF-8"), signature, dilithiumLevel));
+                strategy.verify(message.getBytes("UTF-8"), signature, dilithiumLevel);
             } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
             }
