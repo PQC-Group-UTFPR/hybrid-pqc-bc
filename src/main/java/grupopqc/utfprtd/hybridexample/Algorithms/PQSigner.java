@@ -54,7 +54,7 @@ public class PQSigner implements SignerStrategy {
     }
 
     @Override
-    public boolean verify(byte[] message, byte[] signature) {
+    public boolean verify(byte[] message, byte[] signature, String dilithiumLevel) {
         DilithiumSigner ms = new DilithiumSigner();
         DilithiumPublicKeyParameters pkparam = (DilithiumPublicKeyParameters)PQkeyPair.getPublic();
         ms.init(false, pkparam);
