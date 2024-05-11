@@ -75,16 +75,53 @@ public class HybridSigner implements SignerStrategy {
         ms.init(true, new ParametersWithRandom(skparam, random));
         
         byte[] s = ms.generateSignature(message);
-        return s;
+        try {
+            //signing using RSA
+            String rsaSignature = RSA.sign(new String(message, "UTF-8"));
+            return (new String(s, "UTF-8") + rsaSignature).getBytes("UTF-8");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
-    public boolean verify(byte[] message, byte[] signature) {
-        DilithiumSigner ms = new DilithiumSigner();
-        DilithiumPublicKeyParameters pkparam = (DilithiumPublicKeyParameters)PQkeyPair.getPublic();
-        ms.init(false, pkparam);
-                
-        return ms.verifySignature(message, signature);
+    public boolean verify(byte[] message, byte[] signature, String dilithiumLevel) {
+        try {
+            byte[] dilithiumSignature = null;
+            byte[] rsaSignature = null;
+
+            switch (dilithiumLevel) {
+                case "Dilithium2":
+                    dilithiumSignature = new byte[2528];
+                    rsaSignature = new byte[3072];
+                    System.arraycopy(signature, 0, dilithiumSignature, 0, 2528);
+                    System.arraycopy(signature, 0, rsaSignature, 0, 3072);
+                case "Dilithium3":
+                    dilithiumSignature = new byte[4000];
+                    rsaSignature = new byte[7680];
+                    System.arraycopy(signature, 0, dilithiumSignature, 0, 4000);
+                    System.arraycopy(signature, 0, rsaSignature, 0, 7680);
+                case "Dilithium5":
+                    dilithiumSignature = new byte[4864];
+                    rsaSignature = new byte[15360];
+                    System.arraycopy(signature, 0, dilithiumSignature, 0, 4864);
+                    System.arraycopy(signature, 0, rsaSignature, 0, 15360);
+            }
+
+            DilithiumSigner ms = new DilithiumSigner();
+            DilithiumPublicKeyParameters pkparam = (DilithiumPublicKeyParameters) PQkeyPair.getPublic();
+            ms.init(false, pkparam);
+
+            boolean dilithiumResult = ms.verifySignature(message, dilithiumSignature);
+
+            boolean rsaResult = RSA.verify(new String(rsaSignature, "UTF-8"), new String(message, "UTF-8"));
+
+            return dilithiumResult && rsaResult;
+        }catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }
