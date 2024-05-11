@@ -11,5 +11,5 @@ public interface SignerStrategy {
 
     byte[] sign(byte[] message);
 
-    boolean verify(byte[] message, byte[] signature);
+    boolean verify(byte[] message, byte[] signature, String dilithiumLevel);
 }

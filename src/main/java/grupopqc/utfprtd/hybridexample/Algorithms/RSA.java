@@ -35,7 +35,7 @@ public class RSA {
     }
 
     //@Override
-    public String sign(String message) throws Exception {
+    public static String sign(String message) throws Exception {
         Signature privateSign = Signature.getInstance("SHA256WithRSA");
         privateSign.initSign(privateKey);
         privateSign.update(message.getBytes(UTF_8));
@@ -44,7 +44,7 @@ public class RSA {
     }
 
    // @Override
-    public boolean verify(String signedMessage, String plainText) throws Exception {
+    public static boolean verify(String signedMessage, String plainText) throws Exception {
         Signature publicSign = Signature.getInstance("SHA256withRSA");
         publicSign.initVerify(publicKey);
         publicSign.update(plainText.getBytes(UTF_8));
