@@ -51,7 +51,7 @@ public class HybridSignatureExample {
             //test integrity
             //s[0] = '\0';
 
-            if (strategy.verify(message.getBytes("UTF-8"), s, null)){
+            if (strategy.verify(message.getBytes("UTF-8"), s)){
                 System.out.println("Valid Signature");
             } else{
                 System.out.println("InvalidSignature");

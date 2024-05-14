@@ -35,21 +35,21 @@ public class RSA {
     }
 
     //@Override
-    public static String sign(String message) throws Exception {
+    public static byte[] sign(String message) throws Exception {
         Signature privateSign = Signature.getInstance("SHA256WithRSA");
         privateSign.initSign(privateKey);
         privateSign.update(message.getBytes(UTF_8));
         byte[] signature = privateSign.sign();
-        return Base64.getEncoder().encodeToString(signature);
+        return signature;
     }
 
    // @Override
-    public static boolean verify(String signedMessage, String plainText) throws Exception {
+    public static boolean verify(byte[] signedMessage, String plainText) throws Exception {
         Signature publicSign = Signature.getInstance("SHA256withRSA");
         publicSign.initVerify(publicKey);
         publicSign.update(plainText.getBytes(UTF_8));
-        byte[] signatureBytes = Base64.getDecoder().decode(signedMessage);
-        return publicSign.verify(signatureBytes);
+        
+        return publicSign.verify(signedMessage);
     }
 
     public static PrivateKey getPrivateKey() {

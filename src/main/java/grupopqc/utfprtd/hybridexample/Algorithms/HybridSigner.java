@@ -33,6 +33,8 @@ public class HybridSigner implements SignerStrategy {
     private KeyPair hIngredient;
     private AsymmetricCipherKeyPair PQkeyPair;
     private SecureRandom random;
+    private int pqSignatureSize;
+    private int cSignatureSize;
     
     
     @Override
@@ -46,25 +48,33 @@ public class HybridSigner implements SignerStrategy {
                 case "Dilithium2":
                     keyGen.init(new DilithiumKeyGenerationParameters(random, DilithiumParameters.dilithium2));
                     hIngredient = RSA.generateKeyPair(3072);//get keysize from config or env file
+                    pqSignatureSize = 2420;
+                    cSignatureSize = RSA.getKeySize() /8 ; //should be the same size...
                     break;
 
                 case "Dilithium3":
                     keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));
                     hIngredient = RSA.generateKeyPair(7680);
+                    pqSignatureSize = 3293;
+                    cSignatureSize = RSA.getKeySize() / 8;
                     break;
                 case "Dilithium5":
                     keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium5));
                     hIngredient = RSA.generateKeyPair(15360);
+                    pqSignatureSize = 4595;
+                    cSignatureSize = RSA.getKeySize() / 8;
                     break;
                 default:
                     keyGen.init(new DilithiumKeyGenerationParameters(random, DilithiumParameters.dilithium3));
                     hIngredient = RSA.generateKeyPair(7680);//get keysize from config or env file
+                    pqSignatureSize = 3293;
+                    cSignatureSize = RSA.getKeySize() / 8;
             }
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(HybridSigner.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        PQkeyPair = keyGen.generateKeyPair();                        
+        PQkeyPair = keyGen.generateKeyPair();
     }
 
     @Override
@@ -75,10 +85,14 @@ public class HybridSigner implements SignerStrategy {
         ms.init(true, new ParametersWithRandom(skparam, random));
         
         byte[] s = ms.generateSignature(message);
+        byte[] concatSignature = new byte[pqSignatureSize+cSignatureSize];
         try {
             //signing using RSA
-            String rsaSignature = RSA.sign(new String(message, "UTF-8"));
-            return (new String(s, "UTF-8") + rsaSignature).getBytes("UTF-8");
+            byte[] rsaSignature = RSA.sign(new String(message, "UTF-8"));
+            //return (new String(s, "UTF-8") + rsaSignature).getBytes("UTF-8");
+            System.arraycopy(s, 0, concatSignature, 0, pqSignatureSize);
+            System.arraycopy(rsaSignature, 0, concatSignature, pqSignatureSize, cSignatureSize);
+            return concatSignature;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,28 +100,16 @@ public class HybridSigner implements SignerStrategy {
     }
 
     @Override
-    public boolean verify(byte[] message, byte[] signature, String dilithiumLevel) {
+    public boolean verify(byte[] message, byte[] signature) {
         try {
             byte[] dilithiumSignature = null;
             byte[] rsaSignature = null;
 
-            switch (dilithiumLevel) {
-                case "Dilithium2":
-                    dilithiumSignature = new byte[2528];
-                    rsaSignature = new byte[3072];
-                    System.arraycopy(signature, 0, dilithiumSignature, 0, 2528);
-                    System.arraycopy(signature, 0, rsaSignature, 0, 3072);
-                case "Dilithium3":
-                    dilithiumSignature = new byte[4000];
-                    rsaSignature = new byte[7680];
-                    System.arraycopy(signature, 0, dilithiumSignature, 0, 4000);
-                    System.arraycopy(signature, 0, rsaSignature, 0, 7680);
-                case "Dilithium5":
-                    dilithiumSignature = new byte[4864];
-                    rsaSignature = new byte[15360];
-                    System.arraycopy(signature, 0, dilithiumSignature, 0, 4864);
-                    System.arraycopy(signature, 0, rsaSignature, 0, 15360);
-            }
+            dilithiumSignature = new byte[pqSignatureSize];
+            rsaSignature = new byte[cSignatureSize];
+            System.arraycopy(signature, 0, dilithiumSignature, 0, pqSignatureSize);
+            System.arraycopy(signature, pqSignatureSize, rsaSignature,0 , cSignatureSize);
+            
 
             DilithiumSigner ms = new DilithiumSigner();
             DilithiumPublicKeyParameters pkparam = (DilithiumPublicKeyParameters) PQkeyPair.getPublic();
@@ -115,8 +117,10 @@ public class HybridSigner implements SignerStrategy {
 
             boolean dilithiumResult = ms.verifySignature(message, dilithiumSignature);
 
-            boolean rsaResult = RSA.verify(new String(rsaSignature, "UTF-8"), new String(message, "UTF-8"));
-
+            
+            
+            boolean rsaResult = RSA.verify(rsaSignature, new String(message, "UTF-8"));           
+            
             return dilithiumResult && rsaResult;
         }catch (Exception e) {
             e.printStackTrace();

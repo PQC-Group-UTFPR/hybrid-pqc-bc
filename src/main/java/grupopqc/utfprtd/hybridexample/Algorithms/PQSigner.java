@@ -19,6 +19,7 @@ public class PQSigner implements SignerStrategy {
 
     private AsymmetricCipherKeyPair PQkeyPair;
     private SecureRandom random;
+    private int pqSignatureSize;
     
     @Override
     public void init(String pqAlgorithm) {
@@ -29,15 +30,19 @@ public class PQSigner implements SignerStrategy {
         switch (pqAlgorithm){
             case "Dilithium2":
                 keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium2));
+                pqSignatureSize = 2420;
                 break;
             case "Dilithium3":
                 keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));
+                pqSignatureSize = 3293;
                 break;
             case "Dilithium5":
                 keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium5));
+                pqSignatureSize = 4595;
                 break;
             default:
                 keyGen.init(new DilithiumKeyGenerationParameters(random,DilithiumParameters.dilithium3));
+                pqSignatureSize = 3293;
         }
         PQkeyPair = keyGen.generateKeyPair();
     }
@@ -54,7 +59,7 @@ public class PQSigner implements SignerStrategy {
     }
 
     @Override
-    public boolean verify(byte[] message, byte[] signature, String dilithiumLevel) {
+    public boolean verify(byte[] message, byte[] signature) {
         DilithiumSigner ms = new DilithiumSigner();
         DilithiumPublicKeyParameters pkparam = (DilithiumPublicKeyParameters)PQkeyPair.getPublic();
         ms.init(false, pkparam);

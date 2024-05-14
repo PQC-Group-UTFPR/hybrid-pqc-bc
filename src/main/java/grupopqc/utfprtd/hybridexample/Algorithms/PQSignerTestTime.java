@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class PQSignerTestTime {
 
-    public static int keyNumbers = 100000;
+    public static int keyNumbers = 10;
     public static String message = "Hello world of PQC signers";
 
     public static void main(String[] args) {
@@ -75,6 +75,7 @@ public class PQSignerTestTime {
 
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium2");
+        strategy.init("Dilithium2");        
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
             runSigner(strategy, message);
@@ -87,6 +88,7 @@ public class PQSignerTestTime {
 
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium3");
+        strategy.init("Dilithium3");  
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
             runSigner(strategy, message);
@@ -99,6 +101,7 @@ public class PQSignerTestTime {
 
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium5");
+        strategy.init("Dilithium5");  
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
             runSigner(strategy, message);
@@ -116,9 +119,11 @@ public class PQSignerTestTime {
 
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium2");
+        strategy.init("Dilithium2");
+        byte[] s = strategy.sign(message.getBytes());  
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            runVerify(strategy, message, null);
+            runVerify(strategy, message, s);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -128,9 +133,11 @@ public class PQSignerTestTime {
 
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium3");
+        strategy.init("Dilithium3");
+        s = strategy.sign(message.getBytes());
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            runVerify(strategy, message, null);
+            runVerify(strategy, message, s);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -140,9 +147,11 @@ public class PQSignerTestTime {
 
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium5");
+        strategy.init("Dilithium5");
+        s = strategy.sign(message.getBytes());  
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            runVerify(strategy, message, null);
+            runVerify(strategy, message, s);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -156,23 +165,23 @@ public class PQSignerTestTime {
             strategy.init(dilithiumLevel);
     }
 
-    private static void runSigner(SignerStrategy strategy, String message){
+    private static byte[] runSigner(SignerStrategy strategy, String message){
         try{
             byte[] s = strategy.sign(message.getBytes("UTF-8"));
-            Base64.getEncoder().encodeToString(s);
+            return s;
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return null;
     }
 
-    private static void runVerify(SignerStrategy strategy, String message, String dilithiumLevel){
+    private static boolean runVerify(SignerStrategy strategy, String message, byte[] signature){
 
-        try {
-            byte[] signature = strategy.sign(message.getBytes("UTF-8"));
-            strategy.verify(message.getBytes("UTF-8"), signature, dilithiumLevel);
-
+        try {        
+            return strategy.verify(message.getBytes("UTF-8"),signature);
         } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(PQSignerTestTime.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return false;
     }
 }

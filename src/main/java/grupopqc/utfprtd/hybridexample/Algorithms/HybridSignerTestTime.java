@@ -121,7 +121,7 @@ public class HybridSignerTestTime {
         System.out.println("Stating tests with Dilithium2");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            runVerify(strategy, message, "Dilithium2");
+            runVerify(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -133,7 +133,7 @@ public class HybridSignerTestTime {
         System.out.println("Stating tests with Dilithium3");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            runVerify(strategy, message, "Dilithium3");
+            runVerify(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -145,7 +145,7 @@ public class HybridSignerTestTime {
         System.out.println("Stating tests with Dilithium5");
         startTime = System.currentTimeMillis();
         for (int i = 0; i < keyNumbers; i++) {
-            runVerify(strategy, message, "Dilithium5");
+            runVerify(strategy, message);
         }
         endTime = System.currentTimeMillis();
         elapsedTime = endTime - startTime;
@@ -168,10 +168,10 @@ public class HybridSignerTestTime {
         }
     }
 
-    private static void runVerify(SignerStrategy strategy, String message, String dilithiumLevel) {
+    private static void runVerify(SignerStrategy strategy, String message) {
             try{
                 byte[] signature = strategy.sign(message.getBytes("UTF-8"));
-                strategy.verify(message.getBytes("UTF-8"), signature, dilithiumLevel);
+                strategy.verify(message.getBytes("UTF-8"), signature);
             } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(HybridSignatureExample.class.getName()).log(Level.SEVERE, null, ex);
             }
