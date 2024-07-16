@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class TestKemExemple {
+public class TestKEMExemple {
 
     private static final Logger LOGGER = Logger.getLogger(HybridExample.class.getName());
     private static final String securityProviderName = "BC";

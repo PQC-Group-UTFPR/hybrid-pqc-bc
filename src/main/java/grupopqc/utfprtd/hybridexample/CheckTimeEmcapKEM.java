@@ -11,12 +11,9 @@ import java.security.KeyPair;
 import java.security.Security;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CheckTimeEmcapKem {
-
+public class CheckTimeEmcapKEM {
 
     private static final String securityProviderName = "BC";
     private static final String pqcSecurityProviderName = "BCPQC";
@@ -35,8 +32,8 @@ public class CheckTimeEmcapKem {
 
         List<Integer> listaTestes = Stream.iterate(10, n -> n <= limite, n -> n * 10).toList();
 
-        testgenarateKeys(listaTestes);
-        testEmcapKeys(listaTestes);
+        //testgenarateKeys(listaTestes);
+        //testEmcapKeys(listaTestes);
         testDemcapKeys(listaTestes);
     }
 
