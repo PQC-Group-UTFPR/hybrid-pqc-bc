@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class PQSignerTestTime {
 
-    public static int keyNumbers = 10;
+    public static int keyNumbers = 15;
     public static String message = "Hello world of PQC signers";
 
     public static void main(String[] args) {

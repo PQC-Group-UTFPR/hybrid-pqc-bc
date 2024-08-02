@@ -16,6 +16,11 @@
             <version>1.0.2.4</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>grupopqc.utfprtd</groupId>
+            <artifactId>hybridexample</artifactId>
+            <version>0.0.1</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

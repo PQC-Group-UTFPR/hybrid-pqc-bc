@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 public class HybridSignerTestTime {
 
-    public static int keyNumbers = 1;
+    public static int keyNumbers = 15;
     public static String message = "Hello world of PQC signers";
 
     public static void main(String[] args) {
@@ -56,7 +56,7 @@ public class HybridSignerTestTime {
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
         System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium3 + RSA");
-
+        /*
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium5 + RSA");
 
@@ -69,6 +69,8 @@ public class HybridSignerTestTime {
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
         System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium5 + RSA");
+
+         */
 
         System.out.println();
         System.out.println("Starting signing tests");
@@ -98,7 +100,7 @@ public class HybridSignerTestTime {
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
         System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium3 + RSA");
-
+        /*
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium5 + RSA");
 
@@ -111,6 +113,8 @@ public class HybridSignerTestTime {
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
         System.out.println("Key generation elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium5 + RSA");
+
+         */
 
         System.out.println("End of signing test");
 
@@ -140,7 +144,7 @@ public class HybridSignerTestTime {
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
         System.out.println("Elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium3");
-
+        /*
         System.out.println("--------Initiating test--------");
         System.out.println("Stating tests with Dilithium5");
         startTime = System.currentTimeMillis();
@@ -152,6 +156,8 @@ public class HybridSignerTestTime {
         minutesElapsed = TimeUnit.MILLISECONDS.toSeconds(elapsedTime);
         System.out.println("Elapsed time: " + minutesElapsed + " seconds");
         System.out.println("Ending tests with Dilithium5");
+
+         */
 
     }
 
