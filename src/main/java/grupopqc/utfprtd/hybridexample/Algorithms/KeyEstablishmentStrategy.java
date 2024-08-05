@@ -25,14 +25,29 @@ public interface KeyEstablishmentStrategy {
 
     /**
      *
-     * @param algorithm parameter used to define which encryption algorithm to use with its additional settings
+     * @param algorithm parameter used to define which public-key algorithm to use with its additional settings
      * @return void
      */
     void setPqcParameterSpecs(String algorithm);
 
     /**
      *
-     * @param providerName specific provader parameter
+     * @param ID index of a list of parameter specs used to define which public-key algorithm to use with its additional settings
+     * 
+     * @return void
+     */
+    void setPqcIDParameterSpecs(String algorithm,int ID);
+
+    
+     /**     
+     * @return Kyber parameter spec 
+     */
+    KyberParameterSpec getKyberParameterSpec();
+
+
+    /**
+     *
+     * @param providerName specific provider parameter
      */
     void setProviderName(String providerName);
     /**
@@ -57,4 +72,5 @@ public interface KeyEstablishmentStrategy {
     * @return              the symmetric keying material
     */
     byte[] decapsulation(String encAlgoName, byte[] C, Map<String,KeyPair> keys);
+
 }

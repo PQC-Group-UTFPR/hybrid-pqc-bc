@@ -57,7 +57,7 @@ public class HybridExample {
         //Alice is the initiator; Bob replies
 
         String encName = "AES[256]";
-        strategy.setPqcParameterSpecs("KYBER512");
+        strategy.setPqcParameterSpecs("KYBER768");
         strategy.setProviderName("BCPQC");
 
         //1 - GENERATE KEYS

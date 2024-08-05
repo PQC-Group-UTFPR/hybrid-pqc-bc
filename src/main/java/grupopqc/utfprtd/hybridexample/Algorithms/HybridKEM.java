@@ -28,11 +28,11 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 
 /**
- * Hybrid Concrete Strategy class.
- * //TODO: function to search and map algorithm name to ParameterSpec Object
- * //TODO: map PQC level to Classical Level for the algorithm parameter spec (e.g., Kyber768-with-P384)
- * //TODO: Map agreement type with the prev. keygen. types
- * //TODO: UKM (user keying material) as a parameter
+ * Hybrid Concrete Strategy class. 
+ * //TODO: function to search and map algorithm name to ParameterSpec Object 
+ * //TODO: map PQC level to Classical Level for the algorithm parameter spec (e.g., Kyber768-with-P384) 
+ * //TODO: Map agreement type with the prev. keygen. types 
+ * //TODO: UKM (user keying material) as a parameter 
  * //TODO: BC provider names. BCFIPS 1.77 seems to include PQC (so we could use only one provider instead of two)
  */
 public class HybridKEM implements KeyEstablishmentStrategy {
@@ -41,26 +41,25 @@ public class HybridKEM implements KeyEstablishmentStrategy {
     //Kyber1024-with-P521  - OK
 
     private static final Logger LOGGER = Logger.getLogger(HybridKEM.class.getName());
-    private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber512;
-    private String provaderClassicStrategy = "BC";
+    private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber768;
+    private String providerClassicStrategy = "BC";
     private String algorithmClassicStrategy = "ECDH";
     private String pqcParameterSpecs;
     private String classicParameterSpec;
-    private String providerName;
+    private String providerName = "BCPQC";
     byte[] ukm = new byte[32];
 
-
-    public void setPqcParameterSpecs(String algorithm){
+    public void setPqcParameterSpecs(String algorithm) {
         this.pqcParameterSpecs = algorithm;
-        if (Objects.equals(algorithm, "KYBER512")){
+        if (Objects.equals(algorithm, "KYBER512")) {
             this.kyberParameterSpec = KyberParameterSpec.kyber512;
             this.classicParameterSpec = "P-256";
         }
-        if (Objects.equals(algorithm, "KYBER768")){
+        if (Objects.equals(algorithm, "KYBER768")) {
             this.kyberParameterSpec = KyberParameterSpec.kyber768;
             this.classicParameterSpec = "P-384";
         }
-        if (Objects.equals(algorithm, "KYBER1024")){
+        if (Objects.equals(algorithm, "KYBER1024")) {
             this.kyberParameterSpec = KyberParameterSpec.kyber1024;
             this.classicParameterSpec = "P-521";
         }
@@ -83,7 +82,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
 
             //generate a classic key
             ECParameterSpec ecNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(classicParameterSpec);
-            KeyPairGenerator keyPairGeneratorClassic = KeyPairGenerator.getInstance(algorithmClassicStrategy, provaderClassicStrategy);
+            KeyPairGenerator keyPairGeneratorClassic = KeyPairGenerator.getInstance(algorithmClassicStrategy, providerClassicStrategy);
             keyPairGeneratorClassic.initialize(ecNamedCurveParameterSpec, new SecureRandom());
             KeyPair keyPairClassic = keyPairGeneratorClassic.generateKeyPair();
             keyPairMap.put("Classical", keyPairClassic);
@@ -103,7 +102,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
         try {
             keyGenerator = KeyGenerator.getInstance(this.pqcParameterSpecs, this.providerName);
             PublicKey recipientPublicKey = keyPairMap.get("OtherParty-KEM").getPublic();
-            
+
             //KEMGenerate Spec
             keyGenerator.init(new KEMGenerateSpec((PublicKey) recipientPublicKey, encAlgoName), new SecureRandom());
             SecretKeyWithEncapsulation secretKeyWithEncapsulation = (SecretKeyWithEncapsulation) keyGenerator.generateKey();
@@ -114,7 +113,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
 
             //Hybrid Part
             //TODO: Map agreement type with the prev keygen types
-            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, provaderClassicStrategy);
+            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, providerClassicStrategy);
 
             //Z' = Z concat K  
             PrivateKey privateKey = keyPairMap.get("Classical").getPrivate();
@@ -123,10 +122,10 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             agreement.doPhase(otherPartyPublicKey, true);
 
             SecretKey secretKey = agreement.generateSecret(encAlgoName);
-            
+
             kemGeneratedMap.put("C", encapsulatedSecret);
             kemGeneratedMap.put("K", secretKey.getEncoded());
-                       
+
             return kemGeneratedMap;
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeyException err) {
             LOGGER.log(Level.SEVERE, err.toString());
@@ -145,10 +144,10 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             SecretKeyWithEncapsulation secretKeyWithEncapsulation = (SecretKeyWithEncapsulation) keyGenerator.generateKey();
 
             byte[] kemDecaps = secretKeyWithEncapsulation.getEncoded();
-            
+
             //Hybrid Part
             //TODO: Map agreement type with the prev keygen types
-            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, this.provaderClassicStrategy);
+            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, this.providerClassicStrategy);
 
             //Z' = Z concat K  
             PrivateKey privateKey = keys.get("Classical").getPrivate();
@@ -157,7 +156,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             agreement.doPhase(otherPartyPublicKey, true);
 
             SecretKey agreedKey = agreement.generateSecret(encAlgoName);
-            
+
             return agreedKey.getEncoded();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeyException err) {
             LOGGER.log(Level.SEVERE, err.toString());
@@ -165,4 +164,34 @@ public class HybridKEM implements KeyEstablishmentStrategy {
         }
     }
 
+    //for now it's the same as in KEM.java
+    @Override
+    public void setPqcIDParameterSpecs(String algorithm, int ID) {
+        if (algorithm.equals("KYBER")) {
+            if (ID == 0) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber512;
+                this.pqcParameterSpecs = "KYBER512";
+                this.classicParameterSpec = "P-256";
+            }        
+            
+            if (ID == 1) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber768;
+                this.pqcParameterSpecs = "KYBER768";
+                this.classicParameterSpec = "P-384";
+            }
+            if (ID == 2) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber1024;
+                this.pqcParameterSpecs = "KYBER1024";
+                this.classicParameterSpec = "P-521";
+            }
+        }
+
+    }
+
+    @Override
+    public KyberParameterSpec getKyberParameterSpec() {
+        return kyberParameterSpec;
+    }
+
+    
 }
