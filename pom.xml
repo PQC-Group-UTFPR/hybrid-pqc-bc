@@ -16,12 +16,18 @@
             <version>1.0.2.4</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.1.4</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <exec.mainClass>grupopqc.utfprtd.hybridexample.HybridExample</exec.mainClass>
+        <exec.mainClass>grupopqc.utfprtd.speedtesting.KEMSpeedTest</exec.mainClass>
     </properties>
     <dependencyManagement>
         <dependencies>            

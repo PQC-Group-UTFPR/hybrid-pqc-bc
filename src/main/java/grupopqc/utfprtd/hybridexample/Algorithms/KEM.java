@@ -29,18 +29,7 @@ public class KEM implements KeyEstablishmentStrategy {
     private String pqcParameterSpecs;
     private String providerName = "BCPQC";
 
-    public void setPqcParameterSpecs(String algorithm){
-        this.pqcParameterSpecs = algorithm;
-        if (Objects.equals(algorithm, "KYBER512")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber512;
-        }
-        if (Objects.equals(algorithm, "KYBER768")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber768;
-        }
-        if (Objects.equals(algorithm, "KYBER1024")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber1024;
-        }
-    }
+    
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
@@ -109,8 +98,25 @@ public class KEM implements KeyEstablishmentStrategy {
         } 
     }
 
+    public void setPqcParameterSpecs(String algorithm){
+        this.pqcParameterSpecs = algorithm;
+        if (Objects.equals(algorithm, "KYBER512")){
+            this.kyberParameterSpec = KyberParameterSpec.kyber512;
+        }
+        if (Objects.equals(algorithm, "KYBER768")){
+            this.kyberParameterSpec = KyberParameterSpec.kyber768;
+        }
+        if (Objects.equals(algorithm, "KYBER1024")){
+            this.kyberParameterSpec = KyberParameterSpec.kyber1024;
+        }
+    }
+    
+    //IDs are to match the number of a test
+    //Component algo should not be here; because
+    //This is actually just for the speed test class.
+    //The setPqcParameterSpecs() method should be used instead
     @Override
-    public void setPqcIDParameterSpecs(String algorithm, int ID) {
+    public void setPqcIDParameterSpecs(String algorithm, String componentAlgo, int ID) {
         if (algorithm.contains("KYBER")) {       
             if (ID == 0) {
                 this.kyberParameterSpec = KyberParameterSpec.kyber512;

@@ -1,5 +1,10 @@
 package grupopqc.utfprtd.speedtesting;
 
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
+
 import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEM;
 import grupopqc.utfprtd.hybridexample.Algorithms.KEM;
 import grupopqc.utfprtd.hybridexample.Utils.HybridPenalty;
@@ -8,30 +13,40 @@ import grupopqc.utfprtd.hybridexample.Utils.Utils;
 import java.util.ArrayList;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 import org.bouncycastle.util.Arrays;
 
-public class KEMSpeedTest {
+@Command(name = "bench", mixinStandardHelpOptions = true,
+        version = "bench 1.0",
+        description = "Benchmark of Hybrid PQC in Java.")
+public class KEMSpeedTest implements Callable<Integer> {
 
+    @Option(names = {"-m", "--main-pqc-algorithm"},
+            description = "KYBER")
+    private String algoName = "KYBER";
+    @Option(names = {"-c", "--component-algorithm"},
+            description = "NIST P-Curves, xECDH")
+    private String componentAlgoName = "NIST P-Curves";
+
+    
     public static void main(String[] args) {
-        KEMTask tester = new KEMTask();
-        String algoName = "KYBER"; //default test (TODO: get from args)
-        /* //TODO:
-        for (String arg : args) {
-            arg = arg.toUpperCase().trim();
-            algoName = arg... //TODO: a CLI-parsing code
-            testTime = arg...
-        }*/
-
+        int exitCode = new CommandLine(new KEMSpeedTest()).execute(args);
+        System.exit(exitCode);
+    }
+    
+    @Override
+    public Integer call() throws Exception {
+        
+        KEMTask tester = new KEMTask();               
         tester.initializeProviders();
         long siteration, stime;
         long operationTime, totalTime;
-        stime = System.currentTimeMillis();
-        
+        stime = System.currentTimeMillis();        
         
         //comparing PQ-only vs Hybrids
         int numberOfparameterSets = 3; //TODO: get this from the BC algorithm classes
         int testSet = numberOfparameterSets * 2; //PQ-only and hybrid
-        
+             
         HybridPenalty p;
         ArrayList<HybridPenalty> penalties = new ArrayList<HybridPenalty>();                
         for (int i = 0; i < testSet; i++) {
@@ -41,7 +56,7 @@ public class KEMSpeedTest {
                 } else {
                     tester.strategy = new HybridKEM();
                 }
-                tester.strategy.setPqcIDParameterSpecs(algoName, (i)%(numberOfparameterSets));
+                tester.strategy.setPqcIDParameterSpecs(algoName, componentAlgoName, (i)%(numberOfparameterSets));
                 tester.clearCounts();
                 
                 //setting attributes and checking for errors
@@ -124,6 +139,8 @@ public class KEMSpeedTest {
             System.out.print("\t"+p.getPenaltyEnc()+"x " );
             System.out.print("\t"+p.getPenaltyDec()+"x "  );
         }                
-    }
+    
+        return 0;
+    }   
 
 }

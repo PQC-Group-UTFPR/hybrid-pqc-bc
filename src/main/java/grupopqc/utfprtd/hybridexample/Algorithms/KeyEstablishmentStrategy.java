@@ -18,7 +18,7 @@ public interface KeyEstablishmentStrategy {
     String provaderClassicStrategy = "BC";
     String algorithmClassicStrategy = "ECDH";
     String pqcParameterSpecs = "KYBER768";
-    String classicParameterSpec = "P-384";
+    String componentParameterSpec = "P-384";
     String providerName = "BCPQC";
 
     byte[] ukm = new byte[32];
@@ -36,7 +36,7 @@ public interface KeyEstablishmentStrategy {
      * 
      * @return void
      */
-    void setPqcIDParameterSpecs(String algorithm,int ID);
+    void setPqcIDParameterSpecs(String pqcAlgo, String componentAlgo, int ID);
 
     
      /**     
@@ -59,7 +59,7 @@ public interface KeyEstablishmentStrategy {
     /**
     * Performs encapsulation (KEM.Encaps() style)
     * @param encAlgoName   the desired symmetric algorithm name
-    * @param keys          the recipient's public keys (but could include private key part, e.g. for a classical ECDH process)
+    * @param keys          the recipient's public keys (but could include private key part, e.g. for a componental ECDH process)
     * @return              a map defining a string ID and bytes; K (for shared secrets after KDF) or C for ciphertexts.
     */
     Map<String, byte[]> encapsulation(String encAlgoName, Map<String, KeyPair> keys);
@@ -68,7 +68,7 @@ public interface KeyEstablishmentStrategy {
     * Generates KeyPair(s)
     * @param encAlgoName   the desired symmetric algorithm name
     * @param C    the ciphertext to be decrypted
-    * @param keys          the private keys to decapsulate ciphertexts (but could include public key part, e.g. for a classical ECDH process)    
+    * @param keys          the private keys to decapsulate ciphertexts (but could include public key part, e.g. for a componental ECDH process)    
     * @return              the symmetric keying material
     */
     byte[] decapsulation(String encAlgoName, byte[] C, Map<String,KeyPair> keys);
