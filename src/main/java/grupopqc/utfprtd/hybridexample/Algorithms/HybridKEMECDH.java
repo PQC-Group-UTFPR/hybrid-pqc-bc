@@ -28,19 +28,13 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 
 /**
- * Hybrid Concrete Strategy class. 
- * //TODO: function to search and map algorithm name to ParameterSpec Object 
- * //TODO: map PQC level to Classical Level for the algorithm parameter spec (e.g., Kyber768-with-P384) 
- * //TODO: Map agreement type with the prev. keygen. types 
+ * Hybrid Concrete Strategy class, using NIST P-Curves (P-256, P-384, P-521)
+ * //TODO: function to search and map algorithm name to ParameterSpec Object  
  * //TODO: UKM (user keying material) as a parameter 
  * //TODO: BC provider names. BCFIPS 1.77 seems to include PQC (so we could use only one provider instead of two)
  */
-public class HybridKEM implements KeyEstablishmentStrategy {
-    //Kyber512-with-P256  - OK
-    //Kyber768-with-P384  - OK
-    //Kyber1024-with-P521  - OK
-
-    private static final Logger LOGGER = Logger.getLogger(HybridKEM.class.getName());
+public class HybridKEMECDH implements KeyEstablishmentStrategy {    
+    private static final Logger LOGGER = Logger.getLogger(HybridKEMECDH.class.getName());
     private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber768;
     private String providerClassicStrategy = "BC";
     private String algorithmClassicStrategy = "ECDH";
@@ -101,7 +95,6 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             byte[] key = secretKeyWithEncapsulation.getEncoded();
 
             //Hybrid Part
-            //TODO: Map agreement type with the prev keygen types
             KeyAgreement agreement = KeyAgreement.getInstance(algorithm, providerClassicStrategy);
 
             //Z' = Z concat K  
@@ -158,17 +151,17 @@ public class HybridKEM implements KeyEstablishmentStrategy {
         if (Objects.equals(algorithm, "KYBER512")) {
             this.kyberParameterSpec = KyberParameterSpec.kyber512;
             this.componentParameterSpec = "P-256";
-            this.componentParameterSpecHash = "ECCDHwithSHA256CKDF";
+            this.componentParameterSpecHash = "ECCDHWITHSHA256KDF";
         }
         if (Objects.equals(algorithm, "KYBER768")) {
             this.kyberParameterSpec = KyberParameterSpec.kyber768;
             this.componentParameterSpec = "P-384";
-            this.componentParameterSpecHash = "ECCDHwithSHA384CKDF";
+            this.componentParameterSpecHash = "ECCDHWITHSHA384KDF";
         }
         if (Objects.equals(algorithm, "KYBER1024")) {
             this.kyberParameterSpec = KyberParameterSpec.kyber1024;
             this.componentParameterSpec = "P-521";
-            this.componentParameterSpecHash = "ECCDHwithSHA512CKDF";
+            this.componentParameterSpecHash = "ECCDHWITHSHA512KDF";
         }
     }
     
@@ -182,46 +175,22 @@ public class HybridKEM implements KeyEstablishmentStrategy {
                 this.kyberParameterSpec = KyberParameterSpec.kyber512;
                 this.pqcParameterSpecs = "KYBER512";            
                 this.componentParameterSpec = "P-256";
-                this.componentParameterSpecHash = "ECCDHwithSHA256CKDF";
+                this.componentParameterSpecHash = "ECCDHWITHSHA256KDF";
             }        
             
             if (ID == 1) {
                 this.kyberParameterSpec = KyberParameterSpec.kyber768;
                 this.pqcParameterSpecs = "KYBER768";
                 this.componentParameterSpec = "P-384";
-                this.componentParameterSpecHash = "ECCDHwithSHA384CKDF";
+                this.componentParameterSpecHash = "ECCDHWITHSHA384KDF";
             }
             if (ID == 2) {
                 this.kyberParameterSpec = KyberParameterSpec.kyber1024;
                 this.pqcParameterSpecs = "KYBER1024";
                 this.componentParameterSpec = "P-521";
-                this.componentParameterSpecHash = "ECCDHwithSHA512CKDF";
+                this.componentParameterSpecHash = "ECCDHWITHSHA512KDF";
             }
-        }
-        
-        if (algorithm.equals("KYBER") && componentAlgo.equals("xECDH")) {
-            this.algorithmClassicStrategy = "XDH";
-            if (ID == 0) {
-                this.kyberParameterSpec = KyberParameterSpec.kyber512;
-                this.pqcParameterSpecs = "KYBER512";                
-                this.componentParameterSpec = "x25519";
-                this.componentParameterSpecHash = "ECCDHwithSHA256CKDF";
-            }        
-            
-            if (ID == 1) {
-                this.kyberParameterSpec = KyberParameterSpec.kyber768;
-                this.pqcParameterSpecs = "KYBER768";
-                this.componentParameterSpec = "x25519";
-                this.componentParameterSpecHash = "ECCDHwithSHA384CKDF";
-            }
-            if (ID == 2) {
-                this.kyberParameterSpec = KyberParameterSpec.kyber1024;
-                this.pqcParameterSpecs = "KYBER1024";
-                this.componentParameterSpec = "X448";
-                this.componentParameterSpecHash = "ECCDHwithSHA512CKDF";
-            }
-        }
-
+        }                
     }
 
     @Override

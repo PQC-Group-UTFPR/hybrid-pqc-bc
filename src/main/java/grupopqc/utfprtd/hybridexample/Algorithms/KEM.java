@@ -24,7 +24,7 @@ import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
  */
 public class KEM implements KeyEstablishmentStrategy {
 
-    private static final Logger LOGGER = Logger.getLogger(HybridKEM.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HybridKEMECDH.class.getName());
     private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber768;
     private String pqcParameterSpecs;
     private String providerName = "BCPQC";

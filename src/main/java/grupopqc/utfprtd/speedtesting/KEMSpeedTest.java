@@ -5,7 +5,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEM;
+import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEMECDH;
+import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEMxECDH;
 import grupopqc.utfprtd.hybridexample.Algorithms.KEM;
 import grupopqc.utfprtd.hybridexample.Utils.HybridPenalty;
 import grupopqc.utfprtd.hybridexample.Utils.Utils;
@@ -26,7 +27,7 @@ public class KEMSpeedTest implements Callable<Integer> {
     private String algoName = "KYBER";
     @Option(names = {"-c", "--component-algorithm"},
             description = "NIST P-Curves, xECDH")
-    private String componentAlgoName = "NIST P-Curves";
+    private String componentAlgoName = "xECDH"; // "NIST P-Curves";
 
     
     public static void main(String[] args) {
@@ -54,7 +55,11 @@ public class KEMSpeedTest implements Callable<Integer> {
                 if (i < testSet/2) {
                     tester.strategy = new KEM();
                 } else {
-                    tester.strategy = new HybridKEM();
+                    if (componentAlgoName.equals("NIST P-Curves"))
+                        tester.strategy = new HybridKEMECDH();
+                    else
+                        tester.strategy = new HybridKEMxECDH();
+                    
                 }
                 tester.strategy.setPqcIDParameterSpecs(algoName, componentAlgoName, (i)%(numberOfparameterSets));
                 tester.clearCounts();
