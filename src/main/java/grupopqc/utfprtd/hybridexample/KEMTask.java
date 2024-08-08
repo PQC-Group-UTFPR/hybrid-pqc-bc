@@ -1,4 +1,4 @@
-package grupopqc.utfprtd.speedtesting;
+package grupopqc.utfprtd.hybridexample;
 
 import grupopqc.utfprtd.hybridexample.Algorithms.KeyEstablishmentStrategy;
 import java.security.KeyPair;
@@ -12,7 +12,7 @@ public class KEMTask  {
     public  String pqcSecurityProviderName = "BCPQC";                   
     
     public KeyEstablishmentStrategy strategy;
-    public int iterations = 5000;                //how many keys, encaps, decaps
+    public int iterations = 10;                //how many keys, encaps, decaps
     public Map<String, KeyPair> alicekeys;        //public for speed tests only!
     public Map<String, KeyPair> bobkeys;        //public for speed tests only!
     public String encName = "AES[256]";
@@ -75,4 +75,10 @@ public class KEMTask  {
         countEncaps = 0;
         countDecaps = 0;
     }
+
+    public void setIterations(int iterations) {
+        this.iterations = iterations;
+    }
+    
+    
 }

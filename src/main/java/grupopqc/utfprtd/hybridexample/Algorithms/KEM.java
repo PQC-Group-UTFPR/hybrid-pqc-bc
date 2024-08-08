@@ -76,7 +76,6 @@ public class KEM implements KeyEstablishmentStrategy {
             return kemGeneratedMap;
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException err) {
             LOGGER.log(Level.SEVERE, err.toString());
-            System.out.println("The fail is here:"+this.pqcParameterSpecs + " and kyber:"+this.kyberParameterSpec.getName());
             return kemGeneratedMap;
         }
     }

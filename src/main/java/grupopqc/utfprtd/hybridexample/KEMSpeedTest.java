@@ -1,9 +1,8 @@
-package grupopqc.utfprtd.speedtesting;
+package grupopqc.utfprtd.hybridexample;
 
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEMECDH;
 import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEMxECDH;
@@ -28,13 +27,17 @@ public class KEMSpeedTest implements Callable<Integer> {
     @Option(names = {"-c", "--component-algorithm"},
             description = "NIST P-Curves, xECDH")
     private String componentAlgoName = "xECDH"; // "NIST P-Curves";
-
+    
+    @Option(names = {"-n", "--number-operations"},
+            description = "Number of Operations (default is 10 Keygens, Encaps and Decaps)")
+    private int numberOfOperations = 10;
+    
     
     public static void main(String[] args) {
         int exitCode = new CommandLine(new KEMSpeedTest()).execute(args);
         System.exit(exitCode);
     }
-    
+      
     @Override
     public Integer call() throws Exception {
         
@@ -43,6 +46,8 @@ public class KEMSpeedTest implements Callable<Integer> {
         long siteration, stime;
         long operationTime, totalTime;
         stime = System.currentTimeMillis();        
+        
+        tester.setIterations(numberOfOperations);
         
         //comparing PQ-only vs Hybrids
         int numberOfparameterSets = 3; //TODO: get this from the BC algorithm classes
@@ -143,8 +148,8 @@ public class KEMSpeedTest implements Callable<Integer> {
             System.out.print("\t"+p.getPenaltyKeyGen()+"x "  );
             System.out.print("\t"+p.getPenaltyEnc()+"x " );
             System.out.print("\t"+p.getPenaltyDec()+"x "  );
-        }                
-    
+        }
+        System.out.println("");
         return 0;
     }   
 
