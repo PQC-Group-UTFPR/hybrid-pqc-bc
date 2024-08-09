@@ -24,23 +24,12 @@ import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
  */
 public class KEM implements KeyEstablishmentStrategy {
 
-    private static final Logger LOGGER = Logger.getLogger(HybridKEM.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HybridKEMECDH.class.getName());
     private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber768;
     private String pqcParameterSpecs;
-    private String providerName;
+    private String providerName = "BCPQC";
 
-    public void setPqcParameterSpecs(String algorithm){
-        this.pqcParameterSpecs = algorithm;
-        if (Objects.equals(algorithm, "KYBER512")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber512;
-        }
-        if (Objects.equals(algorithm, "KYBER768")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber768;
-        }
-        if (Objects.equals(algorithm, "KYBER1024")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber1024;
-        }
-    }
+    
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
@@ -59,6 +48,7 @@ public class KEM implements KeyEstablishmentStrategy {
             return keyPairMap;
             
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+            LOGGER.log(Level.SEVERE, e.toString());
             return keyPairMap;
         }
     }
@@ -106,5 +96,46 @@ public class KEM implements KeyEstablishmentStrategy {
             return null;
         } 
     }
+
+    public void setPqcParameterSpecs(String algorithm){
+        this.pqcParameterSpecs = algorithm;
+        if (Objects.equals(algorithm, "KYBER512")){
+            this.kyberParameterSpec = KyberParameterSpec.kyber512;
+        }
+        if (Objects.equals(algorithm, "KYBER768")){
+            this.kyberParameterSpec = KyberParameterSpec.kyber768;
+        }
+        if (Objects.equals(algorithm, "KYBER1024")){
+            this.kyberParameterSpec = KyberParameterSpec.kyber1024;
+        }
+    }
+    
+    //IDs are to match the number of a test
+    //Component algo should not be here; because
+    //This is actually just for the speed test class.
+    //The setPqcParameterSpecs() method should be used instead
+    @Override
+    public void setPqcIDParameterSpecs(String algorithm, String componentAlgo, int ID) {
+        if (algorithm.contains("KYBER")) {       
+            if (ID == 0) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber512;
+                this.pqcParameterSpecs = "KYBER512";
+            }
+            if (ID == 1){
+                this.kyberParameterSpec = KyberParameterSpec.kyber768;
+                this.pqcParameterSpecs = "KYBER768";
+            }
+            if (ID == 2){
+                this.kyberParameterSpec = KyberParameterSpec.kyber1024;
+                this.pqcParameterSpecs = "KYBER1024";
+            }        
+        }
+    }
+
+    @Override
+    public KyberParameterSpec getKyberParameterSpec() {
+        return kyberParameterSpec;
+    }
+    
     
 }

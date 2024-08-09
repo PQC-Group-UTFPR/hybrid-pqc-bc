@@ -28,43 +28,21 @@ import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.KyberParameterSpec;
 
 /**
- * Hybrid Concrete Strategy class.
- * //TODO: function to search and map algorithm name to ParameterSpec Object
- * //TODO: map PQC level to Classical Level for the algorithm parameter spec (e.g., Kyber768-with-P384)
- * //TODO: Map agreement type with the prev. keygen. types
- * //TODO: UKM (user keying material) as a parameter
+ * Hybrid Concrete Strategy class, using NIST P-Curves (P-256, P-384, P-521)
+ * //TODO: function to search and map algorithm name to ParameterSpec Object  
+ * //TODO: UKM (user keying material) as a parameter 
  * //TODO: BC provider names. BCFIPS 1.77 seems to include PQC (so we could use only one provider instead of two)
  */
-public class HybridKEM implements KeyEstablishmentStrategy {
-    //Kyber512-with-P256  - OK
-    //Kyber768-with-P384  - OK
-    //Kyber1024-with-P521  - OK
-
-    private static final Logger LOGGER = Logger.getLogger(HybridKEM.class.getName());
-    private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber512;
-    private String provaderClassicStrategy = "BC";
+public class HybridKEMECDH implements KeyEstablishmentStrategy {    
+    private static final Logger LOGGER = Logger.getLogger(HybridKEMECDH.class.getName());
+    private KyberParameterSpec kyberParameterSpec = KyberParameterSpec.kyber768;
+    private String providerClassicStrategy = "BC";
     private String algorithmClassicStrategy = "ECDH";
     private String pqcParameterSpecs;
-    private String classicParameterSpec;
-    private String providerName;
+    private String componentParameterSpec;
+    private String componentParameterSpecHash;
+    private String providerName = "BCPQC";
     byte[] ukm = new byte[32];
-
-
-    public void setPqcParameterSpecs(String algorithm){
-        this.pqcParameterSpecs = algorithm;
-        if (Objects.equals(algorithm, "KYBER512")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber512;
-            this.classicParameterSpec = "P-256";
-        }
-        if (Objects.equals(algorithm, "KYBER768")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber768;
-            this.classicParameterSpec = "P-384";
-        }
-        if (Objects.equals(algorithm, "KYBER1024")){
-            this.kyberParameterSpec = KyberParameterSpec.kyber1024;
-            this.classicParameterSpec = "P-521";
-        }
-    }
 
     public void setProviderName(String providerName) {
         this.providerName = providerName;
@@ -81,12 +59,16 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             KeyPair keyPairPqc = keyPairGeneratorPqc.generateKeyPair();
             keyPairMap.put("KEM", keyPairPqc);
 
-            //generate a classic key
-            ECParameterSpec ecNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(classicParameterSpec);
-            KeyPairGenerator keyPairGeneratorClassic = KeyPairGenerator.getInstance(algorithmClassicStrategy, provaderClassicStrategy);
-            keyPairGeneratorClassic.initialize(ecNamedCurveParameterSpec, new SecureRandom());
-            KeyPair keyPairClassic = keyPairGeneratorClassic.generateKeyPair();
-            keyPairMap.put("Classical", keyPairClassic);
+            //generate a component key
+            //if (componentParameterSpec.equals("xECDH")){
+                
+            //}else{
+                ECParameterSpec ecNamedCurveParameterSpec = ECNamedCurveTable.getParameterSpec(componentParameterSpec);
+                KeyPairGenerator keyPairGeneratorClassic = KeyPairGenerator.getInstance(algorithmClassicStrategy, providerClassicStrategy);
+                keyPairGeneratorClassic.initialize(ecNamedCurveParameterSpec, new SecureRandom());
+                KeyPair keyPairClassic = keyPairGeneratorClassic.generateKeyPair();
+                keyPairMap.put("Classical", keyPairClassic);
+            //}
 
             return keyPairMap;
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException err) {
@@ -98,12 +80,12 @@ public class HybridKEM implements KeyEstablishmentStrategy {
     @Override
     public Map<String, byte[]> encapsulation(String encAlgoName, Map<String, KeyPair> keyPairMap) {
         KeyGenerator keyGenerator;
-        String algorithm = "ECCDHwithSHA384CKDF";
+        String algorithm = componentParameterSpecHash;
         Map<String, byte[]> kemGeneratedMap = new HashMap<>();
         try {
             keyGenerator = KeyGenerator.getInstance(this.pqcParameterSpecs, this.providerName);
             PublicKey recipientPublicKey = keyPairMap.get("OtherParty-KEM").getPublic();
-            
+
             //KEMGenerate Spec
             keyGenerator.init(new KEMGenerateSpec((PublicKey) recipientPublicKey, encAlgoName), new SecureRandom());
             SecretKeyWithEncapsulation secretKeyWithEncapsulation = (SecretKeyWithEncapsulation) keyGenerator.generateKey();
@@ -113,8 +95,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             byte[] key = secretKeyWithEncapsulation.getEncoded();
 
             //Hybrid Part
-            //TODO: Map agreement type with the prev keygen types
-            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, provaderClassicStrategy);
+            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, providerClassicStrategy);
 
             //Z' = Z concat K  
             PrivateKey privateKey = keyPairMap.get("Classical").getPrivate();
@@ -123,10 +104,10 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             agreement.doPhase(otherPartyPublicKey, true);
 
             SecretKey secretKey = agreement.generateSecret(encAlgoName);
-            
+
             kemGeneratedMap.put("C", encapsulatedSecret);
             kemGeneratedMap.put("K", secretKey.getEncoded());
-                       
+
             return kemGeneratedMap;
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeyException err) {
             LOGGER.log(Level.SEVERE, err.toString());
@@ -137,7 +118,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
     @Override
     public byte[] decapsulation(String encAlgoName, byte[] encapsulatedSecret, Map<String, KeyPair> keys) {
         KeyGenerator keyGenerator;
-        String algorithm = "ECCDHwithSHA384CKDF";
+        String algorithm = componentParameterSpecHash;
         try {
             keyGenerator = KeyGenerator.getInstance(this.pqcParameterSpecs, this.providerName);
             //KEMExtract spec
@@ -145,10 +126,10 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             SecretKeyWithEncapsulation secretKeyWithEncapsulation = (SecretKeyWithEncapsulation) keyGenerator.generateKey();
 
             byte[] kemDecaps = secretKeyWithEncapsulation.getEncoded();
-            
+
             //Hybrid Part
             //TODO: Map agreement type with the prev keygen types
-            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, this.provaderClassicStrategy);
+            KeyAgreement agreement = KeyAgreement.getInstance(algorithm, this.providerClassicStrategy);
 
             //Z' = Z concat K  
             PrivateKey privateKey = keys.get("Classical").getPrivate();
@@ -157,7 +138,7 @@ public class HybridKEM implements KeyEstablishmentStrategy {
             agreement.doPhase(otherPartyPublicKey, true);
 
             SecretKey agreedKey = agreement.generateSecret(encAlgoName);
-            
+
             return agreedKey.getEncoded();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeyException err) {
             LOGGER.log(Level.SEVERE, err.toString());
@@ -165,4 +146,57 @@ public class HybridKEM implements KeyEstablishmentStrategy {
         }
     }
 
+    public void setPqcParameterSpecs(String algorithm) {
+        this.pqcParameterSpecs = algorithm;
+        if (Objects.equals(algorithm, "KYBER512")) {
+            this.kyberParameterSpec = KyberParameterSpec.kyber512;
+            this.componentParameterSpec = "P-256";
+            this.componentParameterSpecHash = "ECCDHWITHSHA256KDF";
+        }
+        if (Objects.equals(algorithm, "KYBER768")) {
+            this.kyberParameterSpec = KyberParameterSpec.kyber768;
+            this.componentParameterSpec = "P-384";
+            this.componentParameterSpecHash = "ECCDHWITHSHA384KDF";
+        }
+        if (Objects.equals(algorithm, "KYBER1024")) {
+            this.kyberParameterSpec = KyberParameterSpec.kyber1024;
+            this.componentParameterSpec = "P-521";
+            this.componentParameterSpecHash = "ECCDHWITHSHA512KDF";
+        }
+    }
+    
+    //IDs are to match the number of a test
+    //This is actually just for the speed test class; the setPqcParameterSpecs() should be used instead
+    @Override
+    public void setPqcIDParameterSpecs(String algorithm, String componentAlgo, int ID) {
+        if (algorithm.equals("KYBER") && componentAlgo.equals("NIST P-Curves")) {
+            this.algorithmClassicStrategy = "ECDH";
+            if (ID == 0) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber512;
+                this.pqcParameterSpecs = "KYBER512";            
+                this.componentParameterSpec = "P-256";
+                this.componentParameterSpecHash = "ECCDHWITHSHA256KDF";
+            }        
+            
+            if (ID == 1) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber768;
+                this.pqcParameterSpecs = "KYBER768";
+                this.componentParameterSpec = "P-384";
+                this.componentParameterSpecHash = "ECCDHWITHSHA384KDF";
+            }
+            if (ID == 2) {
+                this.kyberParameterSpec = KyberParameterSpec.kyber1024;
+                this.pqcParameterSpecs = "KYBER1024";
+                this.componentParameterSpec = "P-521";
+                this.componentParameterSpecHash = "ECCDHWITHSHA512KDF";
+            }
+        }                
+    }
+
+    @Override
+    public KyberParameterSpec getKyberParameterSpec() {
+        return kyberParameterSpec;
+    }
+
+    
 }

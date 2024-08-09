@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEM;
+import grupopqc.utfprtd.hybridexample.Algorithms.HybridKEMECDH;
 import grupopqc.utfprtd.hybridexample.Algorithms.KEM;
 import grupopqc.utfprtd.hybridexample.Algorithms.KeyEstablishmentStrategy;
 import grupopqc.utfprtd.hybridexample.Utils.Utils;
@@ -44,7 +44,7 @@ public class HybridExample {
         //run(false);
         KeyEstablishmentStrategy strategy;
         if (args.length == 0){ 
-            strategy = new HybridKEM();
+            strategy = new HybridKEMECDH();
             LOGGER.log(Level.INFO, "PQC KEM in Hybrid mode selected (default)");
         }else{
             strategy = new KEM();
@@ -57,7 +57,7 @@ public class HybridExample {
         //Alice is the initiator; Bob replies
 
         String encName = "AES[256]";
-        strategy.setPqcParameterSpecs("KYBER512");
+        strategy.setPqcParameterSpecs("KYBER768");
         strategy.setProviderName("BCPQC");
 
         //1 - GENERATE KEYS
