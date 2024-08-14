@@ -16,6 +16,9 @@ Default points to hybrid mode; passing args will switch to PQ-only mode. Current
 
 It's mvn-based repository; so one can build with `mvn` commands and then execute with `java -jar <build-filename>.jar` or import the repository in your IDE.
 
+Example: `mvn exec:java -Dexec.mainClass="grupopqc.utfprtd.hybridexample.KEMSpeedTest"  -Dexec.args="-m KYBER -c xECDH -n 500"`
+
+
 # Contributions
 
 Check issues or TODO's in the code. 
