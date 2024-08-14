@@ -1,5 +1,6 @@
 package grupopqc.utfprtd.hybridexample;
 
+import grupopqc.utfprtd.hybridexample.Utils.KEMTask;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

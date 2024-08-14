@@ -1,14 +1,10 @@
-package grupopqc.utfprtd.hybridexample;
+package grupopqc.utfprtd.hybridexample.Algorithms;
 
 import static java.nio.charset.StandardCharsets.*;
 
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.Signature;
+import java.security.*;
 import java.util.Base64;
+
 
 
 public class RSA {
@@ -17,29 +13,39 @@ public class RSA {
     private static PublicKey publicKey;
     private static int KeySize = 2048;
 
-    public static boolean bytesToBoolean(byte[] buffer) {
-        return bytesToBoolean(buffer);
-    }
+    //Maybe we can ommit and return void
+    public static KeyPair generateKeyPair(int keysize) throws NoSuchAlgorithmException {
 
-    public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-        generator.initialize(KeySize, new SecureRandom());
+        
+        if (keysize < 2048){
+            System.out.println("Error: invalid RSA keysize");
+            return null;
+        }
+        
+        KeySize = keysize;        
+        generator.initialize(KeySize);
+
         KeyPair pair = generator.generateKeyPair();
+
         setPrivateKey(pair.getPrivate());
         setPublicKey(pair.getPublic());
+
         return pair;
     }
 
-    public static String sign(String message) throws Exception {
-        Signature privateSign = Signature.getInstance("SHA256WithRSA");
+    //@Override
+    public String sign(String message) throws Exception {
+        Signature privateSign = Signature.getInstance("SHA256WithRSA");         //TODO: change this to a parameter/attribute
         privateSign.initSign(privateKey);
         privateSign.update(message.getBytes(UTF_8));
         byte[] signature = privateSign.sign();
         return Base64.getEncoder().encodeToString(signature);
     }
 
+   // @Override
     public boolean verify(String signedMessage, String plainText) throws Exception {
-        Signature publicSign = Signature.getInstance("SHA256withRSA");
+        Signature publicSign = Signature.getInstance("SHA256withRSA");           //TODO: same
         publicSign.initVerify(publicKey);
         publicSign.update(plainText.getBytes(UTF_8));
         byte[] signatureBytes = Base64.getDecoder().decode(signedMessage);

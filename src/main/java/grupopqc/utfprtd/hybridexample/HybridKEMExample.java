@@ -20,9 +20,9 @@ import org.bouncycastle.util.Arrays;
  * 2. Encapsulation
  * 3. Decapsulation
  */
-public class HybridExample {
+public class HybridKEMExample {
 
-    private static final Logger LOGGER = Logger.getLogger(HybridExample.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HybridKEMExample.class.getName());
     static PublicKey PublicKeyReceiver;
     private static final String securityProviderName = "BC";
     private static final String pqcSecurityProviderName = "BCPQC";

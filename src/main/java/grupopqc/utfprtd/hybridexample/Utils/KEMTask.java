@@ -1,4 +1,4 @@
-package grupopqc.utfprtd.hybridexample;
+package grupopqc.utfprtd.hybridexample.Utils;
 
 import grupopqc.utfprtd.hybridexample.Algorithms.KeyEstablishmentStrategy;
 import java.security.KeyPair;
